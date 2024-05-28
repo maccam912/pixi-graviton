@@ -29,3 +29,30 @@ jobs:
         cache: 'npm'
     - run: npm install
     - run: npm run tauri build
+    - name: Create Release
+      id: create_release
+      uses: actions/create-release@v1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        tag_name: ${{ github.ref }}
+        release_name: Release ${{ github.ref }}
+        draft: true
+    - name: Upload MSI Artifact
+      uses: actions/upload-release-asset@v1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        upload_url: ${{ steps.create_release.outputs.upload_url }}
+        asset_path: ./src-tauri/target/release/bundle/msi/pixi-graviton_0.0.0_x64_en-US.msi
+        asset_name: pixi-graviton_0.0.0_x64_en-US.msi
+        asset_content_type: application/octet-stream
+    - name: Upload NSIS Artifact
+      uses: actions/upload-release-asset@v1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        upload_url: ${{ steps.create_release.outputs.upload_url }}
+        asset_path: ./src-tauri/target/release/bundle/nsis/pixi-graviton_0.0.0_x64-setup.exe
+        asset_name: pixi-graviton_0.0.0_x64-setup.exe
+        asset_content_type: application/octet-stream
