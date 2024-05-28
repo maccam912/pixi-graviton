@@ -1,7 +1,7 @@
 // Prevents additional console window on Windows in release, DO NOT REMOVE!!
 #![cfg_attr(not(debug_assertions), windows_subsystem = "windows")]
 
-use pixi::cli::{add, init, run, LockFileUsageArgs};
+use pixi::cli::{add, init, run, task, LockFileUsageArgs};
 use rattler_conda_types::Platform;
 use std::{path::PathBuf, vec};
 
@@ -49,6 +49,39 @@ async fn setup(
     tokio::task::block_in_place(|| {
         tokio::runtime::Handle::current().block_on(add::execute(add_args))
     }).map_err(|e| format!("Failed to add Python dependency: {}", e)).unwrap();
+
+    // Finally add tasks to launch spyder and jupyterlab
+    let spyder_add_args = task::AddArgs {
+        name: "spyder".into(),
+        commands: vec!["spyder".to_string()],
+        depends_on: None,
+        platform: None,
+        feature: None,
+        cwd: None,
+    };
+
+    let spyder_task_args = task::Args {
+        operation: pixi::cli::task::Operation::Add(spyder_add_args),
+        manifest_path: Some(path.join("pixi.toml")),
+    };
+
+    let _ = task::execute(spyder_task_args);
+
+    let jupyerlab_add_args = task::AddArgs {
+        name: "jupyterlab".into(),
+        commands: vec!["jupyter".to_string(), "lab".to_string()],
+        depends_on: None,
+        platform: None,
+        feature: None,
+        cwd: None,
+    };
+
+    let jupyter_task_args = task::Args {
+        operation: pixi::cli::task::Operation::Add(jupyerlab_add_args),
+        manifest_path: Some(path.join("pixi.toml")),
+    };
+
+    let _ = task::execute(jupyter_task_args);
 
     Ok("Pixi project initialized and Python dependency added successfully.".to_string())
 }
