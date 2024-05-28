@@ -16,7 +16,7 @@ jobs:
 
     strategy:
       matrix:
-        os: [windows-latest]
+        os: [windows-latest, macos-latest]
         node-version: [22.x]
         # See supported Node.js release schedule at https://nodejs.org/en/about/releases/
 
@@ -39,6 +39,7 @@ jobs:
         release_name: Release ${{ github.ref }}
         draft: true
     - name: Upload MSI Artifact
+      if: matrix.os == 'windows-latest'
       uses: actions/upload-release-asset@v1
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -48,6 +49,7 @@ jobs:
         asset_name: pixi-graviton_0.0.0_x64_en-US.msi
         asset_content_type: application/octet-stream
     - name: Upload NSIS Artifact
+      if: matrix.os == 'windows-latest'
       uses: actions/upload-release-asset@v1
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -55,4 +57,14 @@ jobs:
         upload_url: ${{ steps.create_release.outputs.upload_url }}
         asset_path: ./src-tauri/target/release/bundle/nsis/pixi-graviton_0.0.0_x64-setup.exe
         asset_name: pixi-graviton_0.0.0_x64-setup.exe
+        asset_content_type: application/octet-stream
+    - name: Upload macOS Artifact
+      if: matrix.os == 'macos-latest'
+      uses: actions/upload-release-asset@v1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        upload_url: ${{ steps.create_release.outputs.upload_url }}
+        asset_path: <path-to-macos-artifact>
+        asset_name: <macos-artifact-name>
         asset_content_type: application/octet-stream
