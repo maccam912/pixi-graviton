@@ -17,6 +17,7 @@ serde_json = "1"
 pixi = "0.14"
 rattler_conda_types = "0.18"
 tokio = { version = "1.37.0", features = ["rt"] }
+rfd = "0.14.1"
 
 [features]
 # This feature is used for production builds or when a dev server is not specified, DO NOT REMOVE!!

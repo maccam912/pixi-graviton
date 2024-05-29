@@ -3,15 +3,18 @@
 
 use pixi::cli::{add, init, run, task, LockFileUsageArgs};
 use rattler_conda_types::Platform;
+use rfd::FileDialog;
 use std::{path::PathBuf, vec};
 
 #[tauri::command]
-async fn setup(
-    project_path: &str,
-    python_version: &str,
-) -> Result<String, String> {
-    let path = PathBuf::from(project_path);
+async fn set_project_path() -> Option<PathBuf> {
+    let folder = FileDialog::new().pick_folder();
 
+    folder
+}
+
+#[tauri::command]
+async fn setup<'a>(path: PathBuf, python_version: &'a str) -> Result<String, String> {
     // Check if the directory exists
     if !path.exists() {
         // Attempt to create the directory
@@ -32,10 +35,16 @@ async fn setup(
     };
 
     // Execute the Pixi init command
-    init::execute(args).await.map_err(|e| format!("Failed to initialize Pixi project: {}", e))?;
+    init::execute(args)
+        .await
+        .map_err(|e| format!("Failed to initialize Pixi project: {}", e))?;
 
     let add_args = add::Args {
-        specs: vec![format!("python={}", python_version), "spyder".to_string(), "jupyterlab".to_string()],
+        specs: vec![
+            format!("python={}", python_version),
+            "spyder".to_string(),
+            "jupyterlab".to_string(),
+        ],
         manifest_path: Some(path.join("pixi.toml")),
         host: false,
         build: false,
@@ -48,7 +57,9 @@ async fn setup(
     // Use block_in_place to ensure add::execute runs on the current thread
     tokio::task::block_in_place(|| {
         tokio::runtime::Handle::current().block_on(add::execute(add_args))
-    }).map_err(|e| format!("Failed to add Python dependency: {}", e)).unwrap();
+    })
+    .map_err(|e| format!("Failed to add Python dependency: {}", e))
+    .unwrap();
 
     // Finally add tasks to launch spyder and jupyterlab
     let spyder_add_args = task::AddArgs {
@@ -87,8 +98,7 @@ async fn setup(
 }
 
 #[tauri::command]
-async fn launch(project_path: &str, program: String) -> Result<String, String> {
-    let path = PathBuf::from(project_path);
+async fn launch<'a>(path: PathBuf, program: String) -> Result<String, String> {
     let manifest_path = path.join("pixi.toml");
 
     let run_args = if program == "spyder" {
@@ -109,17 +119,43 @@ async fn launch(project_path: &str, program: String) -> Result<String, String> {
         unimplemented!()
     };
 
-
     println!("Launching {}", program);
     tokio::task::block_in_place(|| {
         tokio::runtime::Handle::current().block_on(run::execute(run_args))
-    }).map_err(|e| format!("Failed to launch Pixi project: {}", e))?;
+    })
+    .map_err(|e| format!("Failed to launch Pixi project: {}", e))?;
     Ok("Launching Pixi project...".to_string())
 }
 
+#[tauri::command]
+async fn is_set_up(path: PathBuf) -> bool {
+    if path.exists() {
+        path.join("pixi.toml").exists()
+    } else {
+        false
+    }
+}
+
+// struct State {
+//     folder: Option<PathBuf>,
+// }
+
 fn main() {
+    // let folder = FileDialog::new()
+    // .pick_folder();
+
+    // let state = State {
+    //     folder,
+    // };
+
     tauri::Builder::default()
-        .invoke_handler(tauri::generate_handler![setup, launch])
+        // .manage(state)
+        .invoke_handler(tauri::generate_handler![
+            set_project_path,
+            is_set_up,
+            setup,
+            launch
+        ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
 }

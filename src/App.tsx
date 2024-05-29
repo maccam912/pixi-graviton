@@ -1,55 +1,94 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { invoke } from "@tauri-apps/api/tauri";
 import "./App.css";
 
 function App() {
-  const [projectPath, setProjectPath] = useState("");
+  const [path, setPath] = useState("");
   const [pythonVersion, setPythonVersion] = useState("");
-  const [response, setResponse] = useState("");
+  const [isSetup, setIsSetup] = useState(false);
+  const [disabled, setDisabled] = useState(false);
+
+  async function setProject() {
+    const path = await invoke("set_project_path");
+    setPath(path as string);
+  }
+
+  async function checkIsSetUp() {
+    const flag = await invoke("is_set_up", { path });
+    setIsSetup(flag as boolean);
+  }
+
+  useEffect(() => {
+    checkIsSetUp();
+  }, [path, pythonVersion]);
 
   async function setup() {
-    // Learn more about Tauri commands at https://tauri.app/v1/guides/features/command
-    setResponse(await invoke("setup", { projectPath, pythonVersion }));
+    setDisabled(true);
+    await invoke("setup", { path, pythonVersion });
+    checkIsSetUp();
+    setDisabled(false);
   }
 
   async function launch_jupyter_lab() {
-    setResponse(await invoke("launch", { projectPath, program: "jupyterlab" }));
+    await invoke("launch", { path, program: "jupyterlab" });
   }
 
   async function launch_spyder() {
-    setResponse(await invoke("launch", { projectPath, program: "spyder" }));
+    await invoke("launch", { path, program: "spyder" });
   }
 
-  return (
-    <>
-    <div className="container">
-      <form
-        className="row"
-        onSubmit={(e) => {
-          e.preventDefault();
-          setup();
-        }}
-      >
-        <input
-          id="project-path-input"
-          onChange={(e) => setProjectPath(e.currentTarget.value)}
-          placeholder="Enter the project path..."
-        />
-        <input
-          id="python-version-input"
-          onChange={(e) => setPythonVersion(e.currentTarget.value)}
-          placeholder="Enter the python version..."
-        />
-        <button type="submit">Set up project</button>
-      </form>
-    </div>
-
-    <button onClick={launch_spyder}>Launch Spyder</button>
-    <button onClick={launch_jupyter_lab}>Launch Jupyter Lab</button>
-
-    <p>{response}</p>
-    </>
-  );
+  if (path === "") {
+    return (
+      <div className="container">
+        <div className="select-project">
+          <button onClick={setProject}>Select Project Folder</button>
+        </div>
+      </div>
+    );
+  } else {
+    return (
+      <>
+        <div className="container">
+          <div>
+            Project: {path}
+            <button onClick={setProject}>Change Project Folder</button>
+          </div>
+        </div>
+        <div className="container">
+          {!isSetup
+            ? (
+              <form
+                className="row"
+                onSubmit={(e) => {
+                  if (disabled) return;
+                  e.preventDefault();
+                  setup();
+                }}
+              >
+                <select
+                  onChange={(e) => setPythonVersion(e.currentTarget.value)}
+                >
+                  <option value="3.10">3.10</option>
+                  <option value="3.11">3.11</option>
+                  <option value="3.12">3.12</option>
+                </select>
+                {disabled ? (
+                  <p>Setting up...</p>
+                  ) : (
+                  <button type="submit" disabled={disabled}>Set up project</button>
+                  )}
+              </form>
+            )
+            : (
+              <>
+                <button onClick={launch_spyder}>Launch Spyder</button>
+                <button onClick={launch_jupyter_lab}>Launch Jupyter Lab</button>
+              </>
+            )}
+        </div>
+      </>
+    );
+  }
 }
 
 export default App;
