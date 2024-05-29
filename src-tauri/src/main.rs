@@ -1,5 +1,6 @@
 // Prevents additional console window on Windows in release, DO NOT REMOVE!!
-#![cfg_attr(not(debug_assertions), windows_subsystem = "windows")]
+// Actually, we do want this maybe
+// #![cfg_attr(not(debug_assertions), windows_subsystem = "windows")]
 
 use pixi::cli::{add, init, run, task, LockFileUsageArgs};
 use rattler_conda_types::Platform;
