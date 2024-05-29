@@ -67,16 +67,19 @@ jobs:
     - name: Copy macOS .app Artifact
       if: matrix.os == 'macos-latest'
       run: cp -R ./src-tauri/target/release/bundle/macos/pixi-graviton.app ./pixi-graviton.app
-    - name: Upload macOS .app Artifact
+    - name: Zip macOS .app Artifact
+      if: matrix.os == 'macos-latest'
+      run: zip -r pixi-graviton.app.zip pixi-graviton.app
+    - name: Upload macOS .app Zip Artifact
       if: matrix.os == 'macos-latest'
       uses: actions/upload-release-asset@v1
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       with:
         upload_url: ${{ steps.create_release.outputs.upload_url }}
-        asset_path: ./pixi-graviton.app
-        asset_name: pixi-graviton.app
-        asset_content_type: application/octet-stream
+        asset_path: ./pixi-graviton.app.zip
+        asset_name: pixi-graviton.app.zip
+        asset_content_type: application/zip
     - name: Copy macOS .dmg Artifact
       if: matrix.os == 'macos-latest'
       run: cp ./src-tauri/target/release/bundle/dmg/pixi-graviton_0.0.0_aarch64.dmg ./pixi-graviton_0.0.0_aarch64.dmg
