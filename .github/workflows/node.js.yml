@@ -29,7 +29,7 @@ jobs:
 
     strategy:
       matrix:
-        os: [windows-latest, macos-latest]
+        os: [windows-latest, macos-13, macos-14]
         node-version: [22.x]
         # See supported Node.js release schedule at https://nodejs.org/en/about/releases/
 
@@ -70,31 +70,31 @@ jobs:
           asset_name: pixi-graviton_0.0.0_x64-setup.exe
           asset_content_type: application/octet-stream
       - name: Copy macOS .app Artifact
-        if: matrix.os == 'macos-latest'
+        if: matrix.os == 'macos-13' || matrix.os == 'macos-14'
         run: cp -R ./src-tauri/target/release/bundle/macos/pixi-graviton.app ./pixi-graviton.app
       - name: Zip macOS .app Artifact
-        if: matrix.os == 'macos-latest'
-        run: zip -r pixi-graviton.app.zip pixi-graviton.app
+        if: matrix.os == 'macos-13' || matrix.os == 'macos-14'
+        run: zip -r pixi-graviton_${{ matrix.os }}.app.zip pixi-graviton.app
       - name: Upload macOS .app Zip Artifact
-        if: matrix.os == 'macos-latest'
+        if: matrix.os == 'macos-13' || matrix.os == 'macos-14'
         uses: actions/upload-release-asset@v1
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           upload_url: ${{ needs.create_release.outputs.upload_url }}
-          asset_path: ./pixi-graviton.app.zip
-          asset_name: pixi-graviton.app.zip
+          asset_path: ./pixi-graviton_${{ matrix.os }}.app.zip
+          asset_name: pixi-graviton_${{ matrix.os }}.app.zip
           asset_content_type: application/zip
       - name: Copy macOS .dmg Artifact
-        if: matrix.os == 'macos-latest'
-        run: cp ./src-tauri/target/release/bundle/dmg/pixi-graviton_0.0.0_aarch64.dmg ./pixi-graviton_0.0.0_aarch64.dmg
+        if: matrix.os == 'macos-13' || matrix.os == 'macos-14'
+        run: cp ./src-tauri/target/release/bundle/dmg/pixi-graviton_0.0.0_${{ matrix.os }}.dmg ./pixi-graviton_0.0.0_${{ matrix.os }}.dmg
       - name: Upload macOS .dmg Artifact
-        if: matrix.os == 'macos-latest'
+        if: matrix.os == 'macos-13' || matrix.os == 'macos-14'
         uses: actions/upload-release-asset@v1
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           upload_url: ${{ needs.create_release.outputs.upload_url }}
-          asset_path: ./pixi-graviton_0.0.0_aarch64.dmg
-          asset_name: pixi-graviton_0.0.0_aarch64.dmg
+          asset_path: ./pixi-graviton_0.0.0_${{ matrix.os }}.dmg
+          asset_name: pixi-graviton_0.0.0_${{ matrix.os }}.dmg
           asset_content_type: application/octet-stream
