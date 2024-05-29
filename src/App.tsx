@@ -5,6 +5,7 @@ import "./App.css";
 function App() {
   const [path, setPath] = useState("");
   const [pythonVersion, setPythonVersion] = useState("");
+  const [condaChannel, setCondaChannel] = useState("");
   const [isSetup, setIsSetup] = useState(false);
   const [disabled, setDisabled] = useState(false);
 
@@ -24,7 +25,7 @@ function App() {
 
   async function setup() {
     setDisabled(true);
-    await invoke("setup", { path, pythonVersion });
+    await invoke("setup", { path, pythonVersion, condaChannel });
     checkIsSetUp();
     setDisabled(false);
   }
@@ -64,11 +65,15 @@ function App() {
                 setup();
               }}
             >
+              <label>Conda Channel (optional)<input type="text" value={condaChannel} onChange={(e) => setCondaChannel(e.currentTarget.value)} /></label>
+              <label>Python Version
               <select onChange={(e) => setPythonVersion(e.currentTarget.value)}>
+                <option value=""></option>
                 <option value="3.10">3.10</option>
                 <option value="3.11">3.11</option>
                 <option value="3.12">3.12</option>
               </select>
+              </label>
               {disabled ? (
                 <p>Setting up...</p>
               ) : (

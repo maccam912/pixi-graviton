@@ -15,7 +15,11 @@ async fn set_project_path() -> Option<PathBuf> {
 }
 
 #[tauri::command]
-async fn setup<'a>(path: PathBuf, python_version: &'a str) -> Result<String, String> {
+async fn setup<'a>(
+    path: PathBuf,
+    python_version: &'a str,
+    conda_channel: &'a str,
+) -> Result<String, String> {
     // Check if the directory exists
     if !path.exists() {
         // Attempt to create the directory
@@ -28,10 +32,15 @@ async fn setup<'a>(path: PathBuf, python_version: &'a str) -> Result<String, Str
         return Err("A 'pixi.toml' file already exists in the specified project path.".to_string());
     }
 
+    let filtered_conda_channel: Option<Vec<String>> = if conda_channel.is_empty() {
+        None
+    } else {
+        Some(vec![conda_channel.to_string()])
+    };
     // Define the arguments for the Pixi init command
     let args = init::Args {
         path: path.clone(),
-        channels: None,
+        channels: filtered_conda_channel,
         platforms: vec![Platform::current().to_string()],
     };
 
@@ -43,6 +52,7 @@ async fn setup<'a>(path: PathBuf, python_version: &'a str) -> Result<String, Str
     let add_args = add::Args {
         specs: vec![
             format!("python={}", python_version),
+            "python.app".to_string(),
             "spyder".to_string(),
             "jupyterlab".to_string(),
         ],
