@@ -55,36 +55,34 @@ function App() {
           </div>
         </div>
         <div className="container">
-          {!isSetup
-            ? (
-              <form
-                className="row"
-                onSubmit={(e) => {
-                  if (disabled) return;
-                  e.preventDefault();
-                  setup();
-                }}
-              >
-                <select
-                  onChange={(e) => setPythonVersion(e.currentTarget.value)}
-                >
-                  <option value="3.10">3.10</option>
-                  <option value="3.11">3.11</option>
-                  <option value="3.12">3.12</option>
-                </select>
-                {disabled ? (
-                  <p>Setting up...</p>
-                  ) : (
-                  <button type="submit" disabled={disabled}>Set up project</button>
-                  )}
-              </form>
-            )
-            : (
-              <>
-                <button onClick={launch_spyder}>Launch Spyder</button>
-                <button onClick={launch_jupyter_lab}>Launch Jupyter Lab</button>
-              </>
-            )}
+          {!isSetup ? (
+            <form
+              className="row"
+              onSubmit={(e) => {
+                if (disabled) return;
+                e.preventDefault();
+                setup();
+              }}
+            >
+              <select onChange={(e) => setPythonVersion(e.currentTarget.value)}>
+                <option value="3.10">3.10</option>
+                <option value="3.11">3.11</option>
+                <option value="3.12">3.12</option>
+              </select>
+              {disabled ? (
+                <p>Setting up...</p>
+              ) : (
+                <button type="submit" disabled={disabled}>
+                  Set up project
+                </button>
+              )}
+            </form>
+          ) : (
+            <>
+              <button onClick={launch_spyder}>Launch Spyder</button>
+              <button onClick={launch_jupyter_lab}>Launch Jupyter Lab</button>
+            </>
+          )}
         </div>
       </>
     );

@@ -5,13 +5,12 @@ name: Node.js CI
 
 on:
   push:
-    branches: [ "main" ]
+    branches: ["main"]
   pull_request:
-    branches: [ "main" ]
+    branches: ["main"]
 
 jobs:
   build:
-
     runs-on: ${{ matrix.os }}
 
     strategy:
@@ -21,75 +20,75 @@ jobs:
         # See supported Node.js release schedule at https://nodejs.org/en/about/releases/
 
     steps:
-    - uses: actions/checkout@v4
-    - name: Use Node.js ${{ matrix.node-version }}
-      uses: actions/setup-node@v3
-      with:
-        node-version: ${{ matrix.node-version }}
-        cache: 'npm'
-    - run: npm install
-    - run: npm run tauri build
-    - name: Create Release
-      id: create_release
-      uses: actions/create-release@v1
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      with:
-        tag_name: ${{ github.ref }}
-        release_name: Release ${{ github.ref }}
-        draft: true
-    - name: Copy MSI Artifact for Windows
-      if: matrix.os == 'windows-latest'
-      run: cp ./src-tauri/target/release/bundle/msi/pixi-graviton_0.0.0_x64_en-US.msi ./pixi-graviton_0.0.0_x64_en-US.msi
-    - name: Upload MSI Artifact
-      if: matrix.os == 'windows-latest'
-      uses: actions/upload-release-asset@v1
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      with:
-        upload_url: ${{ steps.create_release.outputs.upload_url }}
-        asset_path: ./pixi-graviton_0.0.0_x64_en-US.msi
-        asset_name: pixi-graviton_0.0.0_x64_en-US.msi
-        asset_content_type: application/octet-stream
-    - name: Copy NSIS Artifact for Windows
-      if: matrix.os == 'windows-latest'
-      run: cp ./src-tauri/target/release/bundle/nsis/pixi-graviton_0.0.0_x64-setup.exe ./pixi-graviton_0.0.0_x64-setup.exe
-    - name: Upload NSIS Artifact
-      if: matrix.os == 'windows-latest'
-      uses: actions/upload-release-asset@v1
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      with:
-        upload_url: ${{ steps.create_release.outputs.upload_url }}
-        asset_path: ./pixi-graviton_0.0.0_x64-setup.exe
-        asset_name: pixi-graviton_0.0.0_x64-setup.exe
-        asset_content_type: application/octet-stream
-    - name: Copy macOS .app Artifact
-      if: matrix.os == 'macos-latest'
-      run: cp -R ./src-tauri/target/release/bundle/macos/pixi-graviton.app ./pixi-graviton.app
-    - name: Zip macOS .app Artifact
-      if: matrix.os == 'macos-latest'
-      run: zip -r pixi-graviton.app.zip pixi-graviton.app
-    - name: Upload macOS .app Zip Artifact
-      if: matrix.os == 'macos-latest'
-      uses: actions/upload-release-asset@v1
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      with:
-        upload_url: ${{ steps.create_release.outputs.upload_url }}
-        asset_path: ./pixi-graviton.app.zip
-        asset_name: pixi-graviton.app.zip
-        asset_content_type: application/zip
-    - name: Copy macOS .dmg Artifact
-      if: matrix.os == 'macos-latest'
-      run: cp ./src-tauri/target/release/bundle/dmg/pixi-graviton_0.0.0_aarch64.dmg ./pixi-graviton_0.0.0_aarch64.dmg
-    - name: Upload macOS .dmg Artifact
-      if: matrix.os == 'macos-latest'
-      uses: actions/upload-release-asset@v1
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      with:
-        upload_url: ${{ steps.create_release.outputs.upload_url }}
-        asset_path: ./pixi-graviton_0.0.0_aarch64.dmg
-        asset_name: pixi-graviton_0.0.0_aarch64.dmg
-        asset_content_type: application/octet-stream
+      - uses: actions/checkout@v4
+      - name: Use Node.js ${{ matrix.node-version }}
+        uses: actions/setup-node@v3
+        with:
+          node-version: ${{ matrix.node-version }}
+          cache: "npm"
+      - run: npm install
+      - run: npm run tauri build
+      - name: Create Release
+        id: create_release
+        uses: actions/create-release@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          tag_name: ${{ github.ref }}
+          release_name: Release ${{ github.ref }}
+          draft: true
+      - name: Copy MSI Artifact for Windows
+        if: matrix.os == 'windows-latest'
+        run: cp ./src-tauri/target/release/bundle/msi/pixi-graviton_0.0.0_x64_en-US.msi ./pixi-graviton_0.0.0_x64_en-US.msi
+      - name: Upload MSI Artifact
+        if: matrix.os == 'windows-latest'
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ steps.create_release.outputs.upload_url }}
+          asset_path: ./pixi-graviton_0.0.0_x64_en-US.msi
+          asset_name: pixi-graviton_0.0.0_x64_en-US.msi
+          asset_content_type: application/octet-stream
+      - name: Copy NSIS Artifact for Windows
+        if: matrix.os == 'windows-latest'
+        run: cp ./src-tauri/target/release/bundle/nsis/pixi-graviton_0.0.0_x64-setup.exe ./pixi-graviton_0.0.0_x64-setup.exe
+      - name: Upload NSIS Artifact
+        if: matrix.os == 'windows-latest'
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ steps.create_release.outputs.upload_url }}
+          asset_path: ./pixi-graviton_0.0.0_x64-setup.exe
+          asset_name: pixi-graviton_0.0.0_x64-setup.exe
+          asset_content_type: application/octet-stream
+      - name: Copy macOS .app Artifact
+        if: matrix.os == 'macos-latest'
+        run: cp -R ./src-tauri/target/release/bundle/macos/pixi-graviton.app ./pixi-graviton.app
+      - name: Zip macOS .app Artifact
+        if: matrix.os == 'macos-latest'
+        run: zip -r pixi-graviton.app.zip pixi-graviton.app
+      - name: Upload macOS .app Zip Artifact
+        if: matrix.os == 'macos-latest'
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ steps.create_release.outputs.upload_url }}
+          asset_path: ./pixi-graviton.app.zip
+          asset_name: pixi-graviton.app.zip
+          asset_content_type: application/zip
+      - name: Copy macOS .dmg Artifact
+        if: matrix.os == 'macos-latest'
+        run: cp ./src-tauri/target/release/bundle/dmg/pixi-graviton_0.0.0_aarch64.dmg ./pixi-graviton_0.0.0_aarch64.dmg
+      - name: Upload macOS .dmg Artifact
+        if: matrix.os == 'macos-latest'
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ steps.create_release.outputs.upload_url }}
+          asset_path: ./pixi-graviton_0.0.0_aarch64.dmg
+          asset_name: pixi-graviton_0.0.0_aarch64.dmg
+          asset_content_type: application/octet-stream
