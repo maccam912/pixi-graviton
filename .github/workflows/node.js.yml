@@ -87,7 +87,7 @@ jobs:
           asset_content_type: application/zip
       - name: Copy macOS .dmg Artifact
         if: matrix.os == 'macos-13' || matrix.os == 'macos-14'
-        run: cp ./src-tauri/target/release/bundle/dmg/pixi-graviton_0.0.0_${{ matrix.os }}.dmg ./pixi-graviton_0.0.0_${{ matrix.os }}.dmg
+        run: cp ./src-tauri/target/release/bundle/dmg/pixi-graviton_0.0.0*.dmg ./pixi-graviton_0.0.0_${{ matrix.os }}.dmg
       - name: Upload macOS .dmg Artifact
         if: matrix.os == 'macos-13' || matrix.os == 'macos-14'
         uses: actions/upload-release-asset@v1
