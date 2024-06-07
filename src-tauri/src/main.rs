@@ -9,9 +9,7 @@ use std::{path::PathBuf, vec};
 
 #[tauri::command]
 async fn set_project_path() -> Option<PathBuf> {
-    let folder = FileDialog::new().pick_folder();
-
-    folder
+    FileDialog::new().pick_folder()
 }
 
 #[tauri::command]
@@ -53,7 +51,7 @@ async fn setup<'a>(
         specs: vec![
             format!("python={}", python_version),
             "python.app".to_string(),
-            "spyder".to_string(),
+            "spyder=5.4.3".to_string(),
             "jupyterlab".to_string(),
         ],
         manifest_path: Some(path.join("pixi.toml")),
@@ -66,16 +64,38 @@ async fn setup<'a>(
     };
 
     // Use block_in_place to ensure add::execute runs on the current thread
-    tokio::task::block_in_place(|| {
+    match tokio::task::block_in_place(|| {
         tokio::runtime::Handle::current().block_on(add::execute(add_args))
-    })
-    .map_err(|e| format!("Failed to add Python dependency: {}", e))
-    .unwrap();
+    }) {
+        Ok(_) => (),
+        Err(e) => {
+            eprintln!("Failed to add Python dependency: {}", e);
+            std::process::exit(1);
+        }
+    }
+
+    // Check if we are on macOS
+    if cfg!(target_os = "macos") {
+        let pythonw_path = path.join(".pixi/envs/default/bin/pythonw");
+        let pythonw_content = std::fs::read_to_string(&pythonw_path)
+            .map_err(|e| format!("Failed to read pythonw file: {}", e))?;
+
+        // Replace "python.app" with "pythonapp"
+        let modified_content = pythonw_content.replace("python.app", "pythonapp");
+
+        // Write the modified content back to the file
+        std::fs::write(&pythonw_path, modified_content)
+            .map_err(|e| format!("Failed to write pythonw file: {}", e))?;
+    }
 
     // Finally add tasks to launch spyder and jupyterlab
     let spyder_add_args = task::AddArgs {
         name: "spyder".into(),
-        commands: vec!["spyder".to_string()],
+        commands: vec![
+            "spyder".to_string(),
+            "-w".to_string(),
+            path.to_string_lossy().to_string(),
+        ],
         depends_on: None,
         platform: None,
         feature: None,
@@ -89,9 +109,17 @@ async fn setup<'a>(
 
     let _ = task::execute(spyder_task_args);
 
+    let notebook_dir = format!("--notebook-dir={}", path.to_string_lossy());
+    let preferred_dir = format!("--preferred-dir={}", path.to_string_lossy());
+
     let jupyerlab_add_args = task::AddArgs {
         name: "jupyterlab".into(),
-        commands: vec!["jupyter".to_string(), "lab".to_string()],
+        commands: vec![
+            "jupyter".to_string(),
+            "lab".to_string(),
+            notebook_dir,
+            preferred_dir,
+        ],
         depends_on: None,
         platform: None,
         feature: None,
@@ -121,7 +149,7 @@ async fn launch<'a>(path: PathBuf, program: String) -> Result<String, String> {
         }
     } else if program == "jupyterlab" {
         run::Args {
-            task: vec!["jupyter".to_string(), "lab".to_string()],
+            task: vec!["jupyterlab".to_string()],
             manifest_path: Some(manifest_path),
             lock_file_usage: LockFileUsageArgs::default(),
             environment: None,
