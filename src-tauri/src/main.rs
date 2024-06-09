@@ -50,8 +50,7 @@ async fn setup<'a>(
     let add_args = add::Args {
         specs: vec![
             format!("python={}", python_version),
-            "python.app".to_string(),
-            "spyder=5.4.3".to_string(),
+            "spyder".to_string(),
             "jupyterlab".to_string(),
         ],
         manifest_path: Some(path.join("pixi.toml")),
